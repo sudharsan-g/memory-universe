@@ -3,8 +3,7 @@ import Home from "./pages/Home";
 import Celebration from "./pages/Celebration";
 import Collage from "./pages/Collage";
 import PersonalPage from "./pages/PersonalPage";
-import RoastGame from "./pages/RoastGame";
-import MemoryGame from "./pages/MemoryGame";
+
 import "./App.css";
 
 type Page =
