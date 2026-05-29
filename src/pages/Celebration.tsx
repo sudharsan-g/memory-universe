@@ -22,12 +22,6 @@ export default function Celebration({ onNext }: CelebrationProps) {
         className="flex flex-col items-center justify-center w-full min-h-screen px-4"
       >
         <motion.div
-          animate={{ y: [0, -20, 0] }}
-          transition={{ duration: 1, repeat: Infinity }}
-          className="mb-8"
-        ></motion.div>
-
-        <motion.div
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
           transition={{ delay: 0.3, type: "spring" }}
