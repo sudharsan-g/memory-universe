@@ -113,7 +113,7 @@ export default function Home({ onNavigate }: HomeProps) {
         if (blowFramesRef.current > 185 && !isBlown) {
           setShowNudge(true);
         }
-        if (blowFramesRef.current >= 200) {
+        if (blowFramesRef.current >= 190) {
           finishBlow();
           return;
         }

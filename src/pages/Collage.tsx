@@ -112,7 +112,7 @@ export default function Collage({ onNext }: CollageProps) {
         let scrollAmount = 0;
 
         const autoScroll = () => {
-          scrollAmount += 0.5;
+          scrollAmount += 0.7;
 
           container.scrollTo({
             top: scrollAmount,
