@@ -309,8 +309,6 @@ export default function Collage({ onNext }: CollageProps) {
                   muted
                   autoPlay
                   loop
-                  playsInline
-                  preload="auto"
                   className="
                     w-full
                     object-cover
