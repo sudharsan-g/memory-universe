@@ -25,11 +25,7 @@ export default function Celebration({ onNext }: CelebrationProps) {
           animate={{ y: [0, -20, 0] }}
           transition={{ duration: 1, repeat: Infinity }}
           className="mb-8"
-        >
-          <p className="text-2xl md:text-3xl text-white/90 text-center drop-shadow">
-            Happy Birthday! 🥳
-          </p>
-        </motion.div>
+        ></motion.div>
 
         <motion.div
           initial={{ scale: 0 }}

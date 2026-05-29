@@ -98,7 +98,7 @@ export default function Home({ onNavigate }: HomeProps) {
          * 55+
          */
 
-        const isBlowing = volume > 90;
+        const isBlowing = volume > 40;
 
         if (isBlowing) {
           blowFramesRef.current += 1;
@@ -113,7 +113,7 @@ export default function Home({ onNavigate }: HomeProps) {
         if (blowFramesRef.current > 185 && !isBlown) {
           setShowNudge(true);
         }
-        if (blowFramesRef.current >= 700) {
+        if (blowFramesRef.current >= 400) {
           finishBlow();
           return;
         }

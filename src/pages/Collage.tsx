@@ -68,14 +68,32 @@ export default function Collage({ onNext }: CollageProps) {
   ----------------------------- */
 
   useEffect(() => {
-    if (audioRef.current) {
-      audioRef.current.volume = 0.3;
+    const startAudio = async () => {
+      if (!audioRef.current) return;
 
-      audioRef.current.play().catch(() => {
-        // autoplay blocked
-      });
-    }
+      try {
+        audioRef.current.volume = 0.3;
+        await audioRef.current.play();
+      } catch (err) {
+        console.log("Audio autoplay blocked");
+      }
+    };
 
+    window.addEventListener("touchstart", startAudio, {
+      once: true,
+    });
+
+    window.addEventListener("click", startAudio, {
+      once: true,
+    });
+
+    return () => {
+      window.removeEventListener("touchstart", startAudio);
+      window.removeEventListener("click", startAudio);
+    };
+  }, []);
+
+  useEffect(() => {
     const skipTimer = setTimeout(() => {
       setCanSkip(true);
     }, 3000);
@@ -99,11 +117,17 @@ export default function Collage({ onNext }: CollageProps) {
 
     if (!container) return;
 
+    let scrollAmount = 0;
+
     const interval = setInterval(() => {
-      container.scrollBy({
-        top: 2.5,
-        behavior: "smooth",
-      });
+      scrollAmount += 1;
+
+      container.scrollTop = scrollAmount;
+
+      // restart scroll
+      if (scrollAmount >= container.scrollHeight - container.clientHeight) {
+        scrollAmount = 0;
+      }
     }, 16);
 
     return () => clearInterval(interval);
@@ -117,7 +141,6 @@ export default function Collage({ onNext }: CollageProps) {
         h-screen
         overflow-y-auto
         no-scrollbar
-        scroll-smooth
         bg-gradient-to-br
         from-blue-600
         via-purple-600
@@ -126,7 +149,7 @@ export default function Collage({ onNext }: CollageProps) {
       "
     >
       {/* Background Music */}
-      <audio ref={audioRef} loop autoPlay playsInline src={music} />
+      <audio ref={audioRef} loop playsInline preload="auto" src={music} />
 
       {/* Main Content */}
       <div className="min-h-screen flex flex-col items-center px-4 py-10">
@@ -229,6 +252,7 @@ export default function Collage({ onNext }: CollageProps) {
                   muted
                   loop
                   playsInline
+                  preload="auto"
                   className="
                     w-full
                     object-cover
