@@ -60,65 +60,76 @@ const mediaItems = [
 
 export default function Collage({ onNext }: CollageProps) {
   const audioRef = useRef<HTMLAudioElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   const [canSkip, setCanSkip] = useState(false);
   const [started, setStarted] = useState(false);
 
   /* -----------------------------
-     START MEDIA AFTER FIRST TAP
+     START EVERYTHING AFTER TAP
   ----------------------------- */
 
   useEffect(() => {
-    const startExperience = async () => {
-      if (started) return;
+    if (!started) return;
 
-      setStarted(true);
+    let animationFrame: number;
 
-      // PLAY AUDIO
-      if (audioRef.current) {
-        audioRef.current.volume = 0.3;
+    const startEverything = async () => {
+      try {
+        /* AUDIO */
+        if (audioRef.current) {
+          audioRef.current.volume = 0.3;
 
-        try {
-          await audioRef.current.play();
-        } catch (err) {
-          console.log(err);
+          try {
+            await audioRef.current.play();
+          } catch (e) {
+            console.log(e);
+          }
         }
+
+        /* VIDEOS */
+        const videos = document.querySelectorAll("video");
+
+        videos.forEach(async (video) => {
+          try {
+            video.muted = true;
+            video.defaultMuted = true;
+            video.playsInline = true;
+            video.autoplay = true;
+            video.loop = true;
+
+            await video.play();
+          } catch (e) {
+            console.log(e);
+          }
+        });
+
+        /* AUTO SCROLL */
+        const container = containerRef.current;
+
+        if (!container) return;
+
+        let scrollAmount = 0;
+
+        const autoScroll = () => {
+          scrollAmount += 0.5;
+
+          container.scrollTo({
+            top: scrollAmount,
+            behavior: "smooth",
+          });
+
+          animationFrame = requestAnimationFrame(autoScroll);
+        };
+
+        autoScroll();
+      } catch (err) {
+        console.log(err);
       }
-
-      // PLAY ALL VIDEOS
-      const videos = document.querySelectorAll("video");
-
-      videos.forEach(async (video) => {
-        try {
-          video.muted = true;
-          video.playsInline = true;
-
-          await video.play();
-        } catch (err) {
-          console.log(err);
-        }
-      });
     };
 
-    window.addEventListener("touchstart", startExperience, {
-      once: true,
-    });
+    startEverything();
 
-    window.addEventListener("click", startExperience, {
-      once: true,
-    });
-
-    return () => {
-      window.removeEventListener("touchstart", startExperience);
-      window.removeEventListener("click", startExperience);
-    };
-  }, [started]);
-
-  /* -----------------------------
-     TIMERS
-  ----------------------------- */
-
-  useEffect(() => {
     const skipTimer = setTimeout(() => {
       setCanSkip(true);
     }, 3000);
@@ -130,33 +141,14 @@ export default function Collage({ onNext }: CollageProps) {
     return () => {
       clearTimeout(skipTimer);
       clearTimeout(autoNext);
+
+      cancelAnimationFrame(animationFrame);
     };
-  }, [onNext]);
-
-  /* -----------------------------
-     AUTO SCROLL DOWN
-  ----------------------------- */
-
-  useEffect(() => {
-    const container = document.getElementById("collage-container");
-
-    if (!container) return;
-
-    let animationFrame: number;
-
-    const autoScroll = () => {
-      container.scrollTop += 0.7;
-
-      animationFrame = requestAnimationFrame(autoScroll);
-    };
-
-    animationFrame = requestAnimationFrame(autoScroll);
-
-    return () => cancelAnimationFrame(animationFrame);
-  }, []);
+  }, [started, onNext]);
 
   return (
     <div
+      ref={containerRef}
       id="collage-container"
       className="
         w-full
@@ -167,17 +159,59 @@ export default function Collage({ onNext }: CollageProps) {
         from-blue-600
         via-purple-600
         to-pink-600
+        bg-fixed
       "
       style={{
         WebkitOverflowScrolling: "touch",
       }}
     >
-      {/* Background Music */}
-      <audio ref={audioRef} loop playsInline preload="auto" src={music} />
+      {/* ENTER OVERLAY */}
+      {!started && (
+        <div
+          className="
+            fixed
+            inset-0
+            z-[999]
+            flex
+            items-center
+            justify-center
+            bg-black/70
+            backdrop-blur-md
+          "
+          onClick={() => setStarted(true)}
+          onTouchStart={() => setStarted(true)}
+        >
+          <motion.button
+            initial={{
+              scale: 0.9,
+              opacity: 0,
+            }}
+            animate={{
+              scale: 1,
+              opacity: 1,
+            }}
+            className="
+              px-10
+              py-5
+              rounded-full
+              bg-white
+              text-purple-700
+              font-black
+              text-xl
+              shadow-2xl
+            "
+          >
+            Tap to Enter ✨
+          </motion.button>
+        </div>
+      )}
 
-      {/* Main Content */}
+      {/* AUDIO */}
+      <audio ref={audioRef} src={music} loop preload="auto" playsInline />
+
+      {/* MAIN CONTENT */}
       <div className="min-h-screen flex flex-col items-center px-4 py-10">
-        {/* Heading */}
+        {/* HEADING */}
         <motion.div
           initial={{
             opacity: 0,
@@ -209,7 +243,7 @@ export default function Collage({ onNext }: CollageProps) {
           </p>
         </motion.div>
 
-        {/* Masonry Collage */}
+        {/* COLLAGE */}
         <div
           className="
             columns-2
@@ -250,14 +284,17 @@ export default function Collage({ onNext }: CollageProps) {
                 border
                 border-white/20
                 break-inside-avoid
-                mb-4
               "
             >
+              {/* IMAGE */}
               {item.type === "image" ? (
                 <motion.img
                   src={item.src}
                   alt={item.alt}
-                  className="w-full object-cover"
+                  className="
+                    w-full
+                    object-cover
+                  "
                   whileHover={{
                     scale: 1.08,
                   }}
@@ -266,22 +303,26 @@ export default function Collage({ onNext }: CollageProps) {
                   }}
                 />
               ) : (
+                /* VIDEO */
                 <motion.video
                   src={item.src}
                   muted
-                  loop
                   autoPlay
+                  loop
                   playsInline
                   preload="auto"
+                  className="
+                    w-full
+                    object-cover
+                  "
                   webkit-playsinline="true"
-                  className="w-full object-cover"
                   whileHover={{
                     scale: 1.05,
                   }}
                 />
               )}
 
-              {/* Overlay */}
+              {/* OVERLAY */}
               <div
                 className="
                   absolute
@@ -293,7 +334,7 @@ export default function Collage({ onNext }: CollageProps) {
                 "
               />
 
-              {/* Text */}
+              {/* TEXT */}
               <div
                 className="
                   absolute
@@ -319,33 +360,11 @@ export default function Collage({ onNext }: CollageProps) {
           ))}
         </div>
 
-        {/* Bottom Space */}
+        {/* SPACE */}
         <div className="h-32" />
       </div>
 
-      {/* TAP OVERLAY */}
-      {!started && (
-        <div
-          className="
-            fixed
-            inset-0
-            z-[999]
-            flex
-            items-center
-            justify-center
-            bg-black/60
-            backdrop-blur-sm
-          "
-        >
-          <div className="text-center text-white px-6">
-            <h2 className="text-3xl font-black mb-4">Tap to Enter ✨</h2>
-
-            <p className="text-white/70">music + memories are waiting...</p>
-          </div>
-        </div>
-      )}
-
-      {/* Next Button */}
+      {/* NEXT BUTTON */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{
