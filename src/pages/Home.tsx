@@ -76,18 +76,44 @@ export default function Home({ onNavigate }: HomeProps) {
         analyser.getByteTimeDomainData(data);
 
         let total = 0;
+
         for (const sample of data) {
           const centered = sample - 128;
           total += centered * centered;
         }
 
+        // RMS volume
         const volume = Math.sqrt(total / data.length);
-        // console
-        const isLoudBreath = volume > 94;
 
-        blowFramesRef.current = isLoudBreath ? blowFramesRef.current + 1 : 0;
+        /**
+         * Better detection:
+         *
+         * Normal room noise:
+         * 2 - 15
+         *
+         * Talking:
+         * 20 - 45
+         *
+         * Real blowing:
+         * 55+
+         */
 
-        if (blowFramesRef.current >= 6) {
+        const isBlowing = volume > 90;
+
+        if (isBlowing) {
+          blowFramesRef.current += 1;
+        } else {
+          blowFramesRef.current = 0;
+        }
+
+        /**
+         * Need continuous blowing
+         * for multiple frames
+         */
+        if (blowFramesRef.current > 185 && !isBlown) {
+          setShowNudge(true);
+        }
+        if (blowFramesRef.current >= 700) {
           finishBlow();
           return;
         }
@@ -878,7 +904,7 @@ export default function Home({ onNavigate }: HomeProps) {
               style={{ fontSize: "0.8rem", color: "white" }}
               className="text-sm uppercase tracking-[0.24em] text-amber-200/60"
             >
-              History will remember this blow.
+              At this rate the candle will turn 24, before you blow it out!
             </p>
           </motion.div>
         )}
