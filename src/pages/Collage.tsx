@@ -10,6 +10,9 @@ import img6 from "../assets/IMG_2912.mp4";
 import img7 from "../assets/IMG_2919.mp4";
 import img8 from "../assets/new1.jpeg";
 import music from "../assets/dheema_instrumental_bgm.mp3";
+import img9 from "../assets/IMG_3074.jpeg";
+import img10 from "../assets/IMG_3075.jpeg";
+import img11 from "../assets/IMG_3076.jpeg";
 
 interface CollageProps {
   onNext: () => void;
@@ -55,6 +58,21 @@ const mediaItems = [
     type: "video",
     src: img6,
     alt: "Fun times 😂",
+  },
+  {
+    type: "image",
+    src: img9,
+    alt: "Another memory 📸",
+  },
+  {
+    type: "image",
+    src: img10,
+    alt: "Yet another memory 📸",
+  },
+  {
+    type: "image",
+    src: img11,
+    alt: "More memories 📸",
   },
 ];
 
@@ -110,19 +128,26 @@ export default function Collage({ onNext }: CollageProps) {
         if (!container) return;
 
         let scrollAmount = 0;
+        let lastTimestamp = performance.now();
+        const scrollSpeed = 50; // pixels per second
 
-        const autoScroll = () => {
-          scrollAmount += 0.7;
+        const autoScroll = (timestamp: number) => {
+          const maxScroll = container.scrollHeight - container.clientHeight;
+          const delta = timestamp - lastTimestamp;
+          lastTimestamp = timestamp;
 
-          container.scrollTo({
-            top: scrollAmount,
-            behavior: "smooth",
-          });
+          scrollAmount = Math.min(
+            scrollAmount + (scrollSpeed * delta) / 1000,
+            maxScroll,
+          );
+          container.scrollTop = scrollAmount;
 
-          animationFrame = requestAnimationFrame(autoScroll);
+          if (scrollAmount < maxScroll) {
+            animationFrame = requestAnimationFrame(autoScroll);
+          }
         };
 
-        autoScroll();
+        animationFrame = requestAnimationFrame(autoScroll);
       } catch (err) {
         console.log(err);
       }
